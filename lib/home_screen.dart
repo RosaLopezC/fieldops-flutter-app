@@ -6,12 +6,14 @@ class HomeScreen extends StatefulWidget {
   final String distrito;
   final String zona;
   final String sector;
+  final Map<String, String> encargado; // <-- agrega esto
 
   const HomeScreen({
     Key? key,
     required this.distrito,
     required this.zona,
     required this.sector,
+    required this.encargado, // <-- agrega esto
   }) : super(key: key);
 
   @override
@@ -19,6 +21,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final List<Map<String, String>> encargados = [
+    {'nombre': 'Rosa Lopez', 'dni': '87654321'},
+    {'nombre': 'Ana Lopez', 'dni': '45678912'},
+    {'nombre': 'Genesis Vazques', 'dni': '45871296'},
+    {'nombre': 'Mexi Malera', 'dni': '12345698'},
+  ];
+
   void _onPostePressed() {
     Navigator.push(
       context,
@@ -216,11 +225,12 @@ class _HomeScreenState extends State<HomeScreen> {
               
               Spacer(),
               
-              // Información del usuario
+              // Información del encargado logueado
               Container(
-                padding: EdgeInsets.all(16),
+                width: double.infinity,
+                padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFFF9F9F9),
+                  color: Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -232,14 +242,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Juan Pérez',
+                            widget.encargado['nombre'] ?? '',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
                           ),
                           Text(
-                            'DNI: 74951060',
+                            'DNI: ${widget.encargado['dni'] ?? ''}',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
@@ -258,13 +268,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              
+              SizedBox(height: 20),
             ],
           ),
         ),
       ),
     );
   }
-
+  
   Widget _buildMainButton(String text, Color color, VoidCallback onPressed) {
     return Container(
       height: 50,

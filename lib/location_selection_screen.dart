@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 
 class LocationSelectionScreen extends StatefulWidget {
+  final Map<String, String> encargado;  // Add this
+
+  const LocationSelectionScreen({
+    Key? key,
+    required this.encargado,  // Add this
+  }) : super(key: key);
+
   @override
   _LocationSelectionScreenState createState() => _LocationSelectionScreenState();
 }
@@ -77,14 +84,14 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
 
   void _iniciarSesion() {
     if (_canProceed) {
-      // Navegamos a la pantalla principal
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomeScreen(
-            distrito: selectedDistrito!,
-            zona: selectedZona!,
-            sector: selectedSector!,
+            distrito: selectedDistrito ?? '',
+            zona: selectedZona ?? '',
+            sector: selectedSector ?? '',
+            encargado: widget.encargado, // Agrega el encargado desde el login
           ),
         ),
       );

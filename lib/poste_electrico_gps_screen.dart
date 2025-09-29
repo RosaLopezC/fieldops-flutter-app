@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'poste_electrico_fotos_screen.dart';
 
 class PosteElectricoGpsScreen extends StatefulWidget {
   final String distrito;
@@ -364,8 +365,16 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Guardando posiciones:\nUsuario: ${latitudUsuario!.toStringAsFixed(7)}, ${longitudUsuario!.toStringAsFixed(7)}\nPoste: ${latitudPosteSeleccionado!.toStringAsFixed(7)}, ${longitudPosteSeleccionado!.toStringAsFixed(7)}')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PosteElectricoFotosScreen(
+          distrito: widget.distrito,
+          zona: widget.zona,
+          sector: widget.sector,
+          tensionSeleccionada: widget.tensionSeleccionada,
+        ),
+      ),
     );
   }
 

@@ -31,9 +31,35 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
+  // Lista simulada de encargados
+  final List<Map<String, String>> encargados = [
+    {
+      'nombre': 'Rosa Lopez',
+      'dni': '87654321',
+      'password': 'rosa123',
+    },
+    {
+      'nombre': 'Ana Lopez',
+      'dni': '45678912',
+      'password': 'ana123',
+    },
+    {
+      'nombre': 'Genesis Vazques',
+      'dni': '45871296',
+      'password': 'genesis123',
+    },
+    {
+      'nombre': 'Mexi Malera',
+      'dni': '12345698',
+      'password': 'mexi123',
+    },
+  ];
+
   void _login() async {
-    // Validación simple
-    if (_dniController.text.isEmpty || _passwordController.text.isEmpty) {
+    final dni = _dniController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (dni.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Por favor complete todos los campos')),
       );
@@ -44,17 +70,40 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // Simulamos una llamada al API
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1)); // Simula llamada API
 
     setState(() {
       _isLoading = false;
     });
 
-    // Navegamos a la selección de ubicación
+    // Buscar usuario por DNI
+    final encargado = encargados.firstWhere(
+      (e) => e['dni'] == dni,
+      orElse: () => {},
+    );
+
+    if (encargado.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('DNI no registrado')),
+      );
+      return;
+    }
+
+    if (encargado['password'] != password) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contraseña incorrecta')),
+      );
+      return;
+    }
+
+    // Login exitoso, puedes pasar datos del usuario si lo necesitas
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LocationSelectionScreen()),
+      MaterialPageRoute(
+        builder: (context) => LocationSelectionScreen(
+          encargado: encargado, // Pass the logged-in user data
+        ),
+      ),
     );
   }
 
