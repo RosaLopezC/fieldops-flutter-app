@@ -1,4 +1,3 @@
-// lib/poste_electrico_step3_screen.dart
 import 'package:flutter/material.dart';
 import 'poste_electrico_gps_screen.dart';
 
@@ -380,40 +379,6 @@ class _PosteElectricoStep3ScreenState extends State<PosteElectricoStep3Screen> {
     return TextStyle(
       fontSize: 12,
       color: Colors.grey[600],
-    );
-  }
-}
-
-class PosteElectricoGpsScreen extends StatefulWidget {
-  final String distrito;
-  final String zona;
-  final String sector;
-  final String tensionSeleccionada;
-
-  const PosteElectricoGpsScreen({
-    Key? key,
-    required this.distrito,
-    required this.zona,
-    required this.sector,
-    required this.tensionSeleccionada,
-  }) : super(key: key);
-
-  @override
-  _PosteElectricoGpsScreenState createState() => _PosteElectricoGpsScreenState();
-}
-
-class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
-  // Aquí va el estado y la lógica de PosteElectricoGpsScreen
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('GPS Screen'),
-      ),
-      body: Center(
-        child: Text('Contenido de la pantalla GPS'),
-      ),
     );
   }
 }

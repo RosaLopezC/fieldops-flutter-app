@@ -1,6 +1,7 @@
 // lib/poste_selection_screen.dart
 import 'package:flutter/material.dart';
 import 'poste_electrico_form_screen.dart';
+import 'telematic_post_report_screen.dart';
 
 class PosteSelectionScreen extends StatelessWidget {
   final String distrito;
@@ -28,11 +29,16 @@ class PosteSelectionScreen extends StatelessWidget {
   }
 
   void _onPosteTelematicPressed(BuildContext context) {
-    // Navegará al formulario de Poste Telemático
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Formulario de Poste Telemático')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelematicPostReportScreen(
+          distrito: distrito,
+          zona: zona,
+          sector: sector,
+        ),
+      ),
     );
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => PosteTelematicFormScreen()));
   }
 
   @override

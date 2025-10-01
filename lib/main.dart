@@ -50,8 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
     },
     {
       'nombre': 'Mexi Malera',
-      'dni': '12345698',
-      'password': 'mexi123',
+      'dni': '1',
+      'password': '1',
     },
   ];
 
