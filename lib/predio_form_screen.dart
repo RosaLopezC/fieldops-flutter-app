@@ -281,25 +281,35 @@ class _PredioFormScreenState extends State<PredioFormScreen> {
                   children: _tiposVia.map((tipo) {
                     return Expanded(
                       child: Container(
+                        height: 50, // Altura fija
                         margin: EdgeInsets.only(right: tipo != _tiposVia.last ? 5 : 0),
-                        child: ElevatedButton(
-                          onPressed: () => setState(() => _tipoViaSeleccionada = tipo),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: _tipoViaSeleccionada == tipo 
-                                ? Color(0xFF0D47A1) 
-                                : Color(0xFF1565C0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        child: Stack(
+                          children: [
+                            // Botón original
+                            Positioned.fill(
+                              child: CustomButton(
+                                text: "", // Texto vacío, lo mostraremos con un widget Text
+                                onPressed: () => setState(() => _tipoViaSeleccionada = tipo),
+                                backgroundColor: _tipoViaSeleccionada == tipo 
+                                    ? Color(0xFF1976D2) 
+                                    : Color(0xFF64B5F6),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            tipo,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                            // Texto personalizado encima
+                            Positioned.fill(
+                              child: Center(
+                                child: Text(
+                                  tipo,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     );
@@ -924,29 +934,44 @@ class _PredioFormScreenState extends State<PredioFormScreen> {
         children: predioTypes.sublist(0, 3).map((type) {
           return Expanded(
             child: Container(
+              height: 60, // Aumentar altura para dar más espacio al texto
               margin: EdgeInsets.only(right: type != predioTypes[2] ? 5 : 0, bottom: 5),
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() => _tipoPredioSeleccionado = type['value']);
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 12),
-                  backgroundColor: _tipoPredioSeleccionado == type['value'] 
-                    ? Color(0xFF0D47A1) 
-                    : Color(0xFF1565C0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                children: [
+                  // Botón original
+                  Positioned.fill(
+                    child: CustomButton(
+                      text: "", // Texto vacío, lo mostraremos nosotros con un Text separado
+                      onPressed: () {
+                        setState(() => _tipoPredioSeleccionado = type['value']);
+                      },
+                      backgroundColor: _tipoPredioSeleccionado == type['value'] 
+                        ? Color(0xFF1976D2) 
+                        : Color(0xFF64B5F6),
+                    ),
                   ),
-                ),
-                child: Text(
-                  type['title'],
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                  // Texto personalizado encima
+                  Positioned.fill(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            type['title'],
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
+                ],
               ),
             ),
           );
@@ -960,29 +985,44 @@ class _PredioFormScreenState extends State<PredioFormScreen> {
         children: predioTypes.sublist(3).map((type) {
           return Expanded(
             child: Container(
+              height: 60, // Aumentar altura para dar más espacio al texto
               margin: EdgeInsets.only(right: type != predioTypes[5] ? 5 : 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() => _tipoPredioSeleccionado = type['value']);
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 12),
-                  backgroundColor: _tipoPredioSeleccionado == type['value'] 
-                    ? Color(0xFF0D47A1) 
-                    : Color(0xFF1565C0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                children: [
+                  // Botón original
+                  Positioned.fill(
+                    child: CustomButton(
+                      text: "", // Texto vacío, lo mostraremos nosotros con un Text separado
+                      onPressed: () {
+                        setState(() => _tipoPredioSeleccionado = type['value']);
+                      },
+                      backgroundColor: _tipoPredioSeleccionado == type['value'] 
+                        ? Color(0xFF1976D2) 
+                        : Color(0xFF64B5F6),
+                    ),
                   ),
-                ),
-                child: Text(
-                  type['title'],
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                  // Texto personalizado encima
+                  Positioned.fill(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            type['title'],
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
+                ],
               ),
             ),
           );
