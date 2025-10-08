@@ -1,6 +1,7 @@
 // lib/poste_electrico_step2_screen.dart
 import 'package:flutter/material.dart';
 import 'poste_electrico_step3_screen.dart'; // <-- Agrega esto
+import 'widgets/custom_app_bar.dart';
 
 class PosteElectricoStep2Screen extends StatefulWidget {
   final String distrito;
@@ -65,27 +66,8 @@ class _PosteElectricoStep2ScreenState extends State<PosteElectricoStep2Screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[600]),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Container(
-          height: 40,
-          child: Image.asset(
-            'assets/images/logo.png',
-            fit: BoxFit.contain,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.launch, color: Color(0xFF1565C0)),
-            onPressed: () {},
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: 'Poste Eléctrico - Estructura',
       ),
       body: SafeArea(
         child: SingleChildScrollView(

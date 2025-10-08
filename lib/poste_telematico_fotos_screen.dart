@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'widgets/custom_app_bar.dart';
 
 class PosteTelematicoFotosScreen extends StatefulWidget {
   final String distrito;
@@ -75,21 +76,8 @@ class _PosteTelematicoFotosScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[600]),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Fotos del Poste Telemático',
-          style: TextStyle(
-            color: Color(0xFF1565C0),
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        title: 'Fotos del Poste Telemático',
       ),
       body: SafeArea(
         child: SingleChildScrollView(

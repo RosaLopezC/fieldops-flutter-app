@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'location_selection_screen.dart';
+import 'services/auth_service.dart';
 
 void main() {
   runApp(FieldOpsApp());
@@ -28,32 +29,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _dniController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
-
-  // Lista simulada de encargados
-  final List<Map<String, String>> encargados = [
-    {
-      'nombre': 'Rosa Lopez',
-      'dni': '87654321',
-      'password': 'rosa123',
-    },
-    {
-      'nombre': 'Ana Lopez',
-      'dni': '45678912',
-      'password': 'ana123',
-    },
-    {
-      'nombre': 'Genesis Vazques',
-      'dni': '45871296',
-      'password': 'genesis123',
-    },
-    {
-      'nombre': 'Mexi Malera',
-      'dni': '1',
-      'password': '1',
-    },
-  ];
 
   void _login() async {
     final dni = _dniController.text.trim();
@@ -66,45 +44,29 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    await Future.delayed(Duration(seconds: 1)); // Simula llamada API
+    try {
+      final result = await _authService.login(dni, password);
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Buscar usuario por DNI
-    final encargado = encargados.firstWhere(
-      (e) => e['dni'] == dni,
-      orElse: () => {},
-    );
-
-    if (encargado.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('DNI no registrado')),
-      );
-      return;
+      if (result['success']) {
+        // Navigate to next screen with user data
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LocationSelectionScreen(
+              encargado: result['user'] as Map<String, String>,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'])),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    if (encargado['password'] != password) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Contraseña incorrecta')),
-      );
-      return;
-    }
-
-    // Login exitoso, puedes pasar datos del usuario si lo necesitas
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => LocationSelectionScreen(
-          encargado: encargado, // Pass the logged-in user data
-        ),
-      ),
-    );
   }
 
   @override

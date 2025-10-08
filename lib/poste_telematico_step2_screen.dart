@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'poste_telematico_step3_screen.dart';
+import 'widgets/custom_app_bar.dart';
 
 class PosteTelematicoStep2Screen extends StatefulWidget {
   final String distrito;
@@ -120,21 +121,8 @@ Navigator.push(
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[600]),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Poste Telemático - Estructura',
-          style: TextStyle(
-            color: Color(0xFF1565C0),
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        title: 'Poste Telemático - Estructura',
       ),
       body: SafeArea(
         child: SingleChildScrollView(

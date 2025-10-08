@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'poste_telematico_step2_screen.dart';
+import 'widgets/custom_app_bar.dart';  // Agregar esta línea
 
 class TelematicPostReportScreen extends StatefulWidget {
   final String distrito;
@@ -216,21 +217,8 @@ class _TelematicPostReportScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[600]),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Reporte de Poste Telemático',
-          style: TextStyle(
-            color: Color(0xFF1565C0),
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        title: 'Reporte de Poste Telemático',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -238,17 +226,6 @@ class _TelematicPostReportScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo FieldOps
-              Container(
-                height: 60,
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-
-              SizedBox(height: 30),
-
               // Información del reporte
               Container(
                 width: double.infinity,

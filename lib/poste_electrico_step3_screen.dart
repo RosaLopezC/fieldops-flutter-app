@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'poste_electrico_gps_screen.dart';
+import 'widgets/custom_app_bar.dart';
 
 class PosteElectricoStep3Screen extends StatefulWidget {
   final String distrito;
@@ -109,27 +110,8 @@ class _PosteElectricoStep3ScreenState extends State<PosteElectricoStep3Screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[600]),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Container(
-          height: 40,
-          child: Image.asset(
-            'assets/images/logo.png',
-            fit: BoxFit.contain,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.launch, color: Color(0xFF1565C0)),
-            onPressed: () {},
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: 'Poste Eléctrico - Detalles',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
