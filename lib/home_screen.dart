@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'poste_selection_screen.dart';
 import 'predio_form_screen.dart'; // <-- importa la pantalla de formulario de predio
+import 'pendientes_screen.dart'; // <-- importa la pantalla de pendientes
+import 'location_selection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String distrito;
@@ -56,9 +58,50 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onPendientesPressed() {
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => PendientesScreen()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Pendientes')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PendientesScreen(
+          distrito: widget.distrito,
+          zona: widget.zona,
+          sector: widget.sector,
+        ),
+      ),
+    );
+  }
+
+  void _onFinPressed() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Cambiar Sector'),
+          content: Text('¿Estás seguro que deseas finalizar el trabajo en este sector y seleccionar otro?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+                
+                // Navegar a la pantalla de selección de ubicación
+                // Pasar el encargado requerido
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LocationSelectionScreen(
+                      encargado: widget.encargado,  // Pasar el encargado desde el widget actual
+                    ),
+                  ),
+                );
+              },
+              child: Text('Confirmar', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -164,18 +207,21 @@ class _HomeScreenState extends State<HomeScreen> {
               // Botón FIN
               Container(
                 alignment: Alignment.centerRight,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'FIN',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                child: GestureDetector(
+                  onTap: _onFinPressed,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'FIN',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
