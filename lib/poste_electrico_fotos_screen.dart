@@ -3,12 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteElectricoFotosScreen extends StatefulWidget {
   final String distrito;
   final String zona;
   final String sector;
   final String tensionSeleccionada;
+  // Agregar parámetros GPS
+  final double latitudUsuario;
+  final double longitudUsuario;
+  final double precision;
+  final String fechaActualizacion;
 
   const PosteElectricoFotosScreen({
     Key? key,
@@ -16,6 +22,10 @@ class PosteElectricoFotosScreen extends StatefulWidget {
     required this.zona,
     required this.sector,
     required this.tensionSeleccionada,
+    required this.latitudUsuario,
+    required this.longitudUsuario,
+    required this.precision,
+    required this.fechaActualizacion,
   }) : super(key: key);
 
   @override
@@ -23,20 +33,20 @@ class PosteElectricoFotosScreen extends StatefulWidget {
 }
 
 class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
-  // Estados de los switches
-  bool _fotosHabilitadas = false;
+  // Estados de los switches - fotos principales activas por defecto
+  bool _fotosHabilitadas = true;
   bool _fotosOpcionalesHabilitadas = false;
-  
+
   // ImagePicker instance
   final ImagePicker _picker = ImagePicker();
-  
+
   // Almacenar las fotos
   File? _fotoEstructuraCompleta;
   File? _fotoCodigoEstructura;
   File? _fotoBasePoste;
   File? _fotoPerfilPoste;
   File? _fotoLapida;
-  
+
   // Controlador para observaciones
   final _observacionesController = TextEditingController();
 
@@ -54,7 +64,7 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
         maxWidth: 1920,
         maxHeight: 1080,
       );
-      
+
       if (imagen != null) {
         setState(() {
           switch (tipoFoto) {
@@ -75,7 +85,7 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
               break;
           }
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Foto capturada correctamente')),
         );
@@ -89,72 +99,68 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
 
   Widget _buildSeccionFoto(String titulo, String tipo, File? foto) {
     return Container(
+      width: double.infinity,
       margin: EdgeInsets.only(bottom: 15),
       child: InkWell(
         onTap: () => _tomarFoto(tipo),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          height: foto != null ? 200 : 120,
+          width: double.infinity,
+          height: foto != null ? 200 : 100,
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
+            color: foto != null ? Color(0xFFE3F2FD) : Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.grey[300]!, 
+              color: foto != null ? Color(0xFF1565C0) : Colors.grey[300]!,
               width: 2,
-              style: BorderStyle.solid,
             ),
-            borderRadius: BorderRadius.circular(8),
-            color: foto != null ? Colors.blue.shade50 : Colors.white,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (foto != null) ...[
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image: FileImage(foto),
-                        fit: BoxFit.cover,
+          child: foto != null
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(foto),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    SizedBox(height: 8),
+                    Text(
+                      titulo,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.camera_alt,
+                      size: 32,
+                      color: Color(0xFF1565C0),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      titulo,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 8),
-                Text(
-                  titulo,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF1565C0),
-                  ),
-                ),
-                Text(
-                  'Foto capturada ✓',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ] else ...[
-                Icon(
-                  Icons.camera_alt,
-                  size: 40,
-                  color: Color(0xFF1565C0),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  titulo,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF1565C0),
-                  ),
-                ),
-              ],
-            ],
-          ),
         ),
       ),
     );
@@ -169,7 +175,7 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
       if (_fotoCodigoEstructura == null) fotosFaltantes.add('Código estructura');
       if (_fotoBasePoste == null) fotosFaltantes.add('Base poste');
       if (_fotoPerfilPoste == null) fotosFaltantes.add('Perfil poste');
-      
+
       if (fotosFaltantes.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -180,7 +186,7 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
         return;
       }
     }
-    
+
     // Aquí iría la lógica para guardar todos los datos del reporte
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -188,8 +194,8 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
         backgroundColor: Colors.green,
       ),
     );
-    
-    // Navegar de vuelta al inicio o mostrar confirmación
+
+    // Navegar de vuelta al inicio
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -203,30 +209,64 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Información superior
+            // Información superior con resumen unificado
             Container(
               padding: EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  ProjectSummaryCard(
+                    tipoPoste: 'Poste Eléctrico ${widget.tensionSeleccionada}',
+                    distrito: widget.distrito,
+                    zona: widget.zona,
+                    sector: widget.sector,
+                  ),
+                  
+                  SizedBox(height: 15),
+                  
+                  // Información de posición del usuario
                   Text(
-                    'Poste Eléctrico ${widget.tensionSeleccionada}',
+                    'Posición del usuario:',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF1565C0),
                     ),
                   ),
                   
                   SizedBox(height: 10),
                   
-                  Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-                  Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-                  Text('Sector: ${widget.sector}', style: _infoTextStyle()),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCoordinateField('Latitud', 
+                          widget.latitudUsuario.toStringAsFixed(7)
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Expanded(
+                        child: _buildCoordinateField('Longitud', 
+                          widget.longitudUsuario.toStringAsFixed(7)
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 10),
+                  
+                  Text(
+                    'Precisión: ${widget.precision.toStringAsFixed(1)} metros',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  ),
+                  
+                  Text(
+                    'actualizado el: ${widget.fechaActualizacion}',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  ),
                 ],
               ),
             ),
-            
+
             // Contenido scrollable
             Expanded(
               child: SingleChildScrollView(
@@ -234,138 +274,79 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Switch Fotos
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Fotos',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1565C0),
-                          ),
-                        ),
-                        Switch(
-                          value: _fotosHabilitadas,
-                          onChanged: (value) {
-                            setState(() {
-                              _fotosHabilitadas = value;
-                              if (!value) {
-                                // Limpiar fotos si se desactiva
-                                _fotoEstructuraCompleta = null;
-                                _fotoCodigoEstructura = null;
-                                _fotoBasePoste = null;
-                                _fotoPerfilPoste = null;
-                                _fotosOpcionalesHabilitadas = false;
-                                _fotoLapida = null;
-                              }
-                            });
-                          },
-                          activeColor: Colors.orange,
-                        ),
-                      ],
+                    // Switch Fotos principales
+                    CustomSwitchRow(
+                      title: 'Fotos',
+                      value: _fotosHabilitadas,
+                      onChanged: (value) {
+                        setState(() {
+                          _fotosHabilitadas = value;
+                          if (!value) {
+                            // Limpiar fotos si se desactiva
+                            _fotoEstructuraCompleta = null;
+                            _fotoCodigoEstructura = null;
+                            _fotoBasePoste = null;
+                            _fotoPerfilPoste = null;
+                            _fotosOpcionalesHabilitadas = false;
+                            _fotoLapida = null;
+                          }
+                        });
+                      },
                     ),
-                    
+
                     // Fotos obligatorias
                     if (_fotosHabilitadas) ...[
-                      SizedBox(height: 15),
+                      SizedBox(height: 20),
                       _buildSeccionFoto('Estructura completa', 'estructura_completa', _fotoEstructuraCompleta),
                       _buildSeccionFoto('Código estructura', 'codigo_estructura', _fotoCodigoEstructura),
                       _buildSeccionFoto('Base poste', 'base_poste', _fotoBasePoste),
                       _buildSeccionFoto('Perfil poste', 'perfil_poste', _fotoPerfilPoste),
-                      
+
+                      SizedBox(height: 10),
+
                       // Switch Fotos opcionales
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Fotos opcionales',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1565C0),
-                            ),
-                          ),
-                          Switch(
-                            value: _fotosOpcionalesHabilitadas,
-                            onChanged: (value) {
-                              setState(() {
-                                _fotosOpcionalesHabilitadas = value;
-                                if (!value) {
-                                  _fotoLapida = null;
-                                }
-                              });
-                            },
-                            activeColor: Colors.orange,
-                          ),
-                        ],
+                      CustomSwitchRow(
+                        title: 'Fotos opcionales',
+                        value: _fotosOpcionalesHabilitadas,
+                        onChanged: (value) {
+                          setState(() {
+                            _fotosOpcionalesHabilitadas = value;
+                            if (!value) {
+                              _fotoLapida = null;
+                            }
+                          });
+                        },
                       ),
-                      
+
                       // Fotos opcionales
                       if (_fotosOpcionalesHabilitadas) ...[
                         SizedBox(height: 15),
                         _buildSeccionFoto('Foto lápida', 'lapida', _fotoLapida),
                       ],
                     ],
-                    
+
                     SizedBox(height: 20),
-                    
+
                     // Campo Observaciones
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Observaciones',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: TextField(
-                            controller: _observacionesController,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Escriba sus observaciones aquí...',
-                              hintStyle: TextStyle(color: Colors.grey[500]),
-                            ),
-                          ),
-                        ),
-                      ],
+                    CustomTextField(
+                      label: 'Observaciones',
+                      controller: _observacionesController,
+                      hintText: 'Escriba sus observaciones aquí...',
+                      maxLines: 3,
                     ),
-                    
+
                     SizedBox(height: 30),
                   ],
                 ),
               ),
             ),
-            
+
             // Botón Guardar
             Container(
               padding: EdgeInsets.all(20),
-              child: Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _validarYGuardar,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: Text(
-                    'Guardar',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
+              child: CustomButton(
+                text: 'Guardar',
+                onPressed: _validarYGuardar,
               ),
             ),
           ],
@@ -374,7 +355,14 @@ class _PosteElectricoFotosScreenState extends State<PosteElectricoFotosScreen> {
     );
   }
 
-  TextStyle _infoTextStyle() {
-    return TextStyle(fontSize: 12, color: Colors.grey[600]);
+  Widget _buildCoordinateField(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
+      ],
+    );
   }
 }

@@ -2,6 +2,7 @@
 import 'poste_electrico_step2_screen.dart';
 import 'package:flutter/material.dart';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteElectricoFormScreen extends StatefulWidget {
   final String distrito;
@@ -193,247 +194,68 @@ class _PosteElectricoFormScreenState extends State<PosteElectricoFormScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Poste Eléctrico - Reporte',
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Título
-              Text(
-                'Poste Eléctrico',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1565C0),
-                ),
-              ),
-              
-              SizedBox(height: 10),
-              
-              // Información de ubicación
-              Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-              Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-              Text('Sector: ${widget.sector}', style: _infoTextStyle()),
-              
-              SizedBox(height: 20),
-              
-              // Tensión
-              Text(
-                'Tensión',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
-                ),
-              ),
-              
-              SizedBox(height: 10),
-              
-              // Botones de tensión
-              Row(
-                children: [
-                  Expanded(child: _buildTensionButton('BT')),
-                  SizedBox(width: 10),
-                  Expanded(child: _buildTensionButton('MT')),
-                  SizedBox(width: 10),
-                  Expanded(child: _buildTensionButton('AT')),
-                ],
-              ),
-              
-              SizedBox(height: 20),
-              
-              // Cables eléctricos
-              _buildNumberField('Cables eléctricos', _cablesElectricosController),
-              
-              SizedBox(height: 15),
-              
-              // Cables telemáticos
-              _buildNumberField('Cables telemáticos', _cablesTelematicosController),
-              
-              SizedBox(height: 20),
-              
-              // Código con switch
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Código',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _tienecodigo
-                              ? TextFormField(
-                                  controller: _codigoController,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Ingrese código',
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                  style: TextStyle(fontSize: 16),
-                                )
-                              : Text(
-                                  'ND',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                        ),
-                        Switch(
-                          value: _tienecodigo,
-                          onChanged: (value) {
-                            setState(() {
-                              _tienecodigo = value;
-                              if (!value) {
-                                _codigoController.clear();
-                              }
-                            });
-                          },
-                          activeColor: Color(0xFF1565C0),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              
-              SizedBox(height: 20),
-              
-              // Elementos eléctricos dropdown
-              _buildDropdownField(
-                'Elementos eléctricos',
-                elementosElectricosSeleccionados.isEmpty 
-                    ? null 
-                    : elementosElectricosSeleccionados.join(', '),
-                onTap: _showElementosElectricosModal,
-              ),
-              
-              SizedBox(height: 15),
-              
-              // Elementos telemáticos dropdown
-              _buildDropdownField(
-                'Elementos telemáticos',
-                elementosTelematicosSeleccionados.isEmpty 
-                    ? null 
-                    : elementosTelematicosSeleccionados.join(', '),
-                onTap: _showElementosTelematicosModal,
-              ),
-              
-              SizedBox(height: 40),
-              
-              // Botón Siguiente
-              Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _onSiguientePressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Siguiente',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTensionButton(String text) {
-    bool isSelected = selectedTension == text;
-    return Container(
-      height: 40,
-      child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            selectedTension = text;
-          });
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Color(0xFF1565C0) : Color(0xFFE3F2FD),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Color(0xFF1565C0),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNumberField(String label, TextEditingController controller) {
+  Widget _buildCodigoFieldUnified() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          'Código',
           style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 5),
+        SizedBox(height: 4),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: Color(0xFFF5F5F5),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: '',
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: TextStyle(fontSize: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: _tienecodigo
+                    ? TextFormField(
+                        controller: _codigoController,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Ingrese código',
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: TextStyle(fontSize: 16),
+                      )
+                    : Text(
+                        'ND',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+              ),
+              SizedBox(width: 8),
+              Switch(
+                value: _tienecodigo,
+                onChanged: (value) {
+                  setState(() {
+                    _tienecodigo = value;
+                    if (!value) {
+                      _codigoController.clear();
+                    }
+                  });
+                },
+                activeColor: Color(0xFFFF6B00),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDropdownField(
+  Widget _buildDropdownFieldUnified(
     String label,
     String? displayText, {
     VoidCallback? onTap,
@@ -444,11 +266,12 @@ class _PosteElectricoFormScreenState extends State<PosteElectricoFormScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 5),
+        SizedBox(height: 4),
         GestureDetector(
           onTap: onTap,
           child: Container(
@@ -462,10 +285,10 @@ class _PosteElectricoFormScreenState extends State<PosteElectricoFormScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    displayText ?? '',
+                    displayText ?? 'Seleccionar elementos',
                     style: TextStyle(
                       fontSize: 16,
-                      color: displayText != null ? Colors.grey[700] : Colors.grey[500],
+                      color: displayText != null ? Colors.black : Colors.grey[500],
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -482,10 +305,95 @@ class _PosteElectricoFormScreenState extends State<PosteElectricoFormScreen> {
     );
   }
 
-  TextStyle _infoTextStyle() {
-    return TextStyle(
-      fontSize: 12,
-      color: Colors.grey[600],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: 'Poste Eléctrico - Reporte',
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Resumen del proyecto unificado
+              ProjectSummaryCard(
+                tipoPoste: 'Poste Eléctrico',
+                distrito: widget.distrito,
+                zona: widget.zona,
+                sector: widget.sector,
+              ),
+              
+              SizedBox(height: 30),
+              
+              // Tensión usando OptionsSelector
+              OptionsSelector(
+                title: 'Tensión',
+                options: ['BT', 'MT', 'AT'],
+                selectedValue: selectedTension,
+                onSelect: (value) => setState(() => selectedTension = value),
+              ),
+              
+              SizedBox(height: 30),
+              
+              // Cables eléctricos
+              CustomTextField(
+                label: 'Cables eléctricos',
+                controller: _cablesElectricosController,
+                keyboardType: TextInputType.number,
+                hintText: 'Ingrese número de cables',
+              ),
+              
+              SizedBox(height: 20),
+              
+              // Cables telemáticos
+              CustomTextField(
+                label: 'Cables telemáticos',
+                controller: _cablesTelematicosController,
+                keyboardType: TextInputType.number,
+                hintText: 'Ingrese número de cables',
+              ),
+              
+              SizedBox(height: 20),
+              
+              // Código con switch unificado
+              _buildCodigoFieldUnified(),
+              
+              SizedBox(height: 20),
+              
+              // Elementos eléctricos dropdown unificado
+              _buildDropdownFieldUnified(
+                'Elementos eléctricos',
+                elementosElectricosSeleccionados.isEmpty 
+                    ? null 
+                    : elementosElectricosSeleccionados.join(', '),
+                onTap: _showElementosElectricosModal,
+              ),
+              
+              SizedBox(height: 20),
+              
+              // Elementos telemáticos dropdown unificado
+              _buildDropdownFieldUnified(
+                'Elementos telemáticos',
+                elementosTelematicosSeleccionados.isEmpty 
+                    ? null 
+                    : elementosTelematicosSeleccionados.join(', '),
+                onTap: _showElementosTelematicosModal,
+              ),
+              
+              SizedBox(height: 30),
+              
+              // Botón Siguiente usando componente unificado
+              CustomButton(
+                text: 'Siguiente',
+                onPressed: _onSiguientePressed,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

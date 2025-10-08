@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'poste_electrico_gps_screen.dart';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteElectricoStep3Screen extends StatefulWidget {
   final String distrito;
@@ -21,7 +22,7 @@ class PosteElectricoStep3Screen extends StatefulWidget {
 }
 
 class _PosteElectricoStep3ScreenState extends State<PosteElectricoStep3Screen> {
-  // Estados de selección
+  // Estados de selección (mantener todos los datos existentes)
   String? estadoSeleccionado;
   String? inclinacionSeleccionada;
   
@@ -30,9 +31,9 @@ class _PosteElectricoStep3ScreenState extends State<PosteElectricoStep3Screen> {
   
   // Estado del switch de propietario
   bool _tienePropietario = true;
-  String? propietarioSeleccionado = 'SEAL';
+  String? propietarioSeleccionado; // Sin valor por defecto
   
-  // Opciones para el dropdown/modal
+  // Opciones para el dropdown/modal (mantener las mismas)
   final List<String> propietarios = ['SEAL', 'REP', 'TES', 'EGA', 'YUR'];
 
   @override
@@ -106,6 +107,70 @@ class _PosteElectricoStep3ScreenState extends State<PosteElectricoStep3Screen> {
     );
   }
 
+  // Campo propietario unificado con switch
+  Widget _buildPropietarioFieldUnified() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Propietario',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 4),
+        GestureDetector(
+          onTap: _tienePropietario ? _showPropietariosModal : null,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _tienePropietario
+                        ? (propietarioSeleccionado ?? 'Asignar propietario')
+                        : 'No asignado',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _tienePropietario 
+                          ? (propietarioSeleccionado != null ? Colors.black : Colors.grey[500])
+                          : Colors.grey[500],
+                    ),
+                  ),
+                ),
+                if (_tienePropietario)
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.grey[600],
+                  ),
+                SizedBox(width: 8),
+                Switch(
+                  value: _tienePropietario,
+                  onChanged: (value) {
+                    setState(() {
+                      _tienePropietario = value;
+                      if (!value) {
+                        propietarioSeleccionado = null;
+                      }
+                      // No asignar valor por defecto cuando se activa
+                    });
+                  },
+                  activeColor: Color(0xFFFF6B00),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,250 +182,62 @@ class _PosteElectricoStep3ScreenState extends State<PosteElectricoStep3Screen> {
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Título con tensión
-              Text(
-                'Poste Eléctrico ${widget.tensionSeleccionada}',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1565C0),
-                ),
+              // Resumen del proyecto unificado
+              ProjectSummaryCard(
+                tipoPoste: 'Poste Eléctrico ${widget.tensionSeleccionada}',
+                distrito: widget.distrito,
+                zona: widget.zona,
+                sector: widget.sector,
               ),
-              
-              SizedBox(height: 10),
-              
-              // Información de ubicación
-              Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-              Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-              Text('Sector: ${widget.sector}', style: _infoTextStyle()),
-              
-              SizedBox(height: 20),
-              
-              // Estado
-              _buildSectionTitle('Estado'),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSelectableButton('Pequeñas grietas', estadoSeleccionado, (value) {
-                      setState(() { estadoSeleccionado = value; });
-                    })
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: _buildSelectableButton('Grandes grietas /\ncorroído', estadoSeleccionado, (value) {
-                      setState(() { estadoSeleccionado = value; });
-                    })
-                  ),
-                ],
+
+              SizedBox(height: 30),
+
+              // Estado usando OptionsSelector
+              OptionsSelector(
+                title: 'Estado',
+                options: ['Pequeñas grietas', 'Grandes grietas / corroído'],
+                selectedValue: estadoSeleccionado,
+                onSelect: (value) => setState(() => estadoSeleccionado = value),
               ),
-              
-              SizedBox(height: 20),
-              
-              // Inclinación
-              _buildSectionTitle('Inclinación'),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSelectableButton('Ligera inclinación', inclinacionSeleccionada, (value) {
-                      setState(() { inclinacionSeleccionada = value; });
-                    })
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: _buildSelectableButton('Muy inclinado', inclinacionSeleccionada, (value) {
-                      setState(() { inclinacionSeleccionada = value; });
-                    })
-                  ),
-                ],
+
+              SizedBox(height: 30),
+
+              // Inclinación usando OptionsSelector
+              OptionsSelector(
+                title: 'Inclinación',
+                options: ['Ligera inclinación', 'Muy inclinado'],
+                selectedValue: inclinacionSeleccionada,
+                onSelect: (value) => setState(() => inclinacionSeleccionada = value),
               ),
-              
-              SizedBox(height: 20),
-              
-              // Altura
-              _buildNumberField('Altura', _alturaController),
-              
-              SizedBox(height: 20),
-              
-              // Propietario con switch
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Propietario',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _tienePropietario
-                              ? GestureDetector(
-                                  onTap: _showPropietariosModal,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        propietarioSeleccionado ?? 'Seleccionar',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.keyboard_arrow_down,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : Text(
-                                  'No asignado',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                        ),
-                        Switch(
-                          value: _tienePropietario,
-                          onChanged: (value) {
-                            setState(() {
-                              _tienePropietario = value;
-                              if (!value) {
-                                propietarioSeleccionado = null;
-                              } else {
-                                propietarioSeleccionado = 'SEAL'; // Valor por defecto
-                              }
-                            });
-                          },
-                          activeColor: Colors.orange,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+
+              SizedBox(height: 30),
+
+              // Altura usando CustomTextField
+              CustomTextField(
+                label: 'Altura',
+                controller: _alturaController,
+                keyboardType: TextInputType.number,
+                hintText: 'Ingrese altura',
               ),
-              
-              SizedBox(height: 40),
-              
-              // Botón Siguiente
-              Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _onSiguientePressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Siguiente',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+
+              SizedBox(height: 30),
+
+              // Propietario con switch unificado
+              _buildPropietarioFieldUnified(),
+
+              SizedBox(height: 30),
+
+              // Botón Siguiente usando componente unificado
+              CustomButton(
+                text: 'Siguiente',
+                onPressed: _onSiguientePressed,
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF1565C0),
-      ),
-    );
-  }
-
-  Widget _buildSelectableButton(String text, String? selectedValue, Function(String) onPressed) {
-    bool isSelected = selectedValue == text;
-    
-    return Container(
-      height: 50,
-      child: ElevatedButton(
-        onPressed: () => onPressed(text),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Color(0xFF1565C0) : Color(0xFFBBDEFB),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 12),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Color(0xFF1565C0),
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNumberField(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-          ),
-        ),
-        SizedBox(height: 5),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: '',
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: TextStyle(fontSize: 16),
-          ),
-        ),
-      ],
-    );
-  }
-
-  TextStyle _infoTextStyle() {
-    return TextStyle(
-      fontSize: 12,
-      color: Colors.grey[600],
     );
   }
 }

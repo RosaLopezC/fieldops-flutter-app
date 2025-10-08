@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'poste_electrico_fotos_screen.dart';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteElectricoGpsScreen extends StatefulWidget {
   final String distrito;
@@ -366,6 +367,7 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
       return;
     }
 
+    // Navegar al paso de fotos con TODOS los datos incluyendo GPS
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -374,6 +376,11 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
           zona: widget.zona,
           sector: widget.sector,
           tensionSeleccionada: widget.tensionSeleccionada,
+          // Pasar datos GPS
+          latitudUsuario: latitudUsuario!,
+          longitudUsuario: longitudUsuario!,
+          precision: precision,
+          fechaActualizacion: fechaActualizacion,
         ),
       ),
     );
@@ -389,26 +396,19 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Información superior
+            // Información superior con resumen unificado
             Container(
               padding: EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Poste Eléctrico ${widget.tensionSeleccionada}',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1565C0),
-                    ),
+                  // Resumen del proyecto unificado
+                  ProjectSummaryCard(
+                    tipoPoste: 'Poste Eléctrico ${widget.tensionSeleccionada}',
+                    distrito: widget.distrito,
+                    zona: widget.zona,
+                    sector: widget.sector,
                   ),
-                  
-                  SizedBox(height: 10),
-                  
-                  Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-                  Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-                  Text('Sector: ${widget.sector}', style: _infoTextStyle()),
                   
                   SizedBox(height: 15),
                   
@@ -562,7 +562,7 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
                           onMapCreated: (GoogleMapController controller) {
                             _controller.complete(controller);
                           },
-                          myLocationEnabled: false, // Usamos nuestro marcador personalizado
+                          myLocationEnabled: false,
                           myLocationButtonEnabled: false,
                           zoomControlsEnabled: true,
                           compassEnabled: true,
@@ -592,23 +592,12 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
                     ),
             ),
             
-            // Botón Siguiente
+            // Botón Siguiente usando el componente unificado
             Container(
               padding: EdgeInsets.all(20),
-              child: Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: latitudUsuario != null ? _onSiguientePressed : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: latitudUsuario != null ? Color(0xFF1565C0) : Colors.grey,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: Text(
-                    'Siguiente',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
+              child: CustomButton(
+                text: 'Siguiente',
+                onPressed: latitudUsuario != null ? _onSiguientePressed : null,
               ),
             ),
           ],
@@ -626,9 +615,5 @@ class _PosteElectricoGpsScreenState extends State<PosteElectricoGpsScreen> {
         Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
       ],
     );
-  }
-
-  TextStyle _infoTextStyle() {
-    return TextStyle(fontSize: 12, color: Colors.grey[600]);
   }
 }
