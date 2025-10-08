@@ -141,43 +141,84 @@ class OptionsSelector extends StatelessWidget {
           ),
         ),
         SizedBox(height: 10),
-        Container(
-          height: 40,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: options.length,
-            separatorBuilder: (context, index) => SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final option = options[index];
-              final isSelected = selectedValue == option;
-              
-              return InkWell(
-                onTap: () => onSelect(option),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Color(0xFF1565C0) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? Color(0xFF1565C0) : Colors.grey[300]!,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey[600],
-                        fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+        
+        // Dividir opciones en filas de 3, pero si son solo 2, que ocupen toda la fila
+        ..._buildButtonRows(),
+      ],
+    );
+  }
+
+  List<Widget> _buildButtonRows() {
+    List<Widget> rows = [];
+    
+    // Si solo hay 2 opciones, hacer una fila especial
+    if (options.length == 2) {
+      rows.add(
+        Row(
+          children: [
+            Expanded(child: _buildOptionButton(options[0])),
+            SizedBox(width: 10),
+            Expanded(child: _buildOptionButton(options[1])),
+          ],
+        ),
+      );
+      return rows;
+    }
+    
+    // Para más de 2 opciones, usar el patrón de 3 por fila
+    for (int i = 0; i < options.length; i += 3) {
+      List<String> rowOptions = options.skip(i).take(3).toList();
+      
+      rows.add(
+        Row(
+          children: [
+            for (int j = 0; j < rowOptions.length; j++) ...[
+              if (j > 0) SizedBox(width: 10),
+              Expanded(child: _buildOptionButton(rowOptions[j])),
+            ],
+            // Llenar espacios vacíos si hay menos de 3 botones
+            for (int k = rowOptions.length; k < 3; k++) ...[
+              SizedBox(width: 10),
+              Expanded(child: SizedBox()),
+            ],
+          ],
+        ),
+      );
+      
+      if (i + 3 < options.length) {
+        rows.add(SizedBox(height: 10));
+      }
+    }
+    
+    return rows;
+  }
+
+  Widget _buildOptionButton(String option) {
+    final isSelected = selectedValue == option;
+    
+    return Container(
+      height: 50, // Altura aumentada para textos más largos
+      child: ElevatedButton(
+        onPressed: () => onSelect(option),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSelected ? Color(0xFF1565C0) : Color(0xFFBBDEFB),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+        child: Text(
+          option,
+          textAlign: TextAlign.center,
+          maxLines: 2, // Permitir 2 líneas para textos largos
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Color(0xFF1565C0),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      ],
+      ),
     );
   }
 }

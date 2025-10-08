@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'poste_telematico_step4_screen.dart';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteTelematicoStep3Screen extends StatefulWidget {
   final String distrito;
@@ -206,144 +207,59 @@ class _PosteTelematicoStep3ScreenState
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Título
-              Text(
-                'Poste Telemático',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1565C0),
-                ),
+              // Resumen del proyecto
+              ProjectSummaryCard(
+                tipoPoste: 'Poste Telemático',
+                distrito: widget.distrito,
+                zona: widget.zona,
+                sector: widget.sector,
               ),
 
-              SizedBox(height: 10),
+              SizedBox(height: 30),
 
-              // Información de ubicación
-              Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-              Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-              Text('Sector: ${widget.sector}', style: _infoTextStyle()),
-
-              SizedBox(height: 20),
-
-              // ESTADO
-              Text(
-                'Estado',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
-                ),
+              // Estado
+              OptionsSelector(
+                title: 'Estado',
+                options: ['Pequeñas grietas', 'Grandes grietas / corroído'],
+                selectedValue: _estadoSeleccionado,
+                onSelect: (value) => setState(() => _estadoSeleccionado = value),
               ),
 
-              SizedBox(height: 12),
+              SizedBox(height: 30),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildOptionButton(
-                      'Pequeñas grietas',
-                      _estadoSeleccionado == 'Pequeñas grietas',
-                      () {
-                        setState(() {
-                          _estadoSeleccionado = 'Pequeñas grietas';
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: _buildOptionButton(
-                      'Grandes grietas / corroído',
-                      _estadoSeleccionado == 'Grandes grietas / corroído',
-                      () {
-                        setState(() {
-                          _estadoSeleccionado = 'Grandes grietas / corroído';
-                        });
-                      },
-                    ),
-                  ),
-                ],
+              // Inclinación
+              OptionsSelector(
+                title: 'Inclinación',
+                options: ['Ligera inclinación', 'Muy inclinado'],
+                selectedValue: _inclinacionSeleccionada,
+                onSelect: (value) => setState(() => _inclinacionSeleccionada = value),
               ),
 
-              SizedBox(height: 20),
+              SizedBox(height: 30),
 
-              // INCLINACIÓN
-              Text(
-                'Inclinación',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
-                ),
+              // Altura
+              CustomTextField(
+                label: 'Altura',
+                controller: _alturaController,
+                keyboardType: TextInputType.number,
+                hintText: 'Ingrese altura',
               ),
 
-              SizedBox(height: 12),
+              SizedBox(height: 30),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildOptionButton(
-                      'Ligera inclinación',
-                      _inclinacionSeleccionada == 'Ligera inclinación',
-                      () {
-                        setState(() {
-                          _inclinacionSeleccionada = 'Ligera inclinación';
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: _buildOptionButton(
-                      'Muy inclinado',
-                      _inclinacionSeleccionada == 'Muy inclinado',
-                      () {
-                        setState(() {
-                          _inclinacionSeleccionada = 'Muy inclinado';
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              // Propietario con switch
+              _buildPropietarioFieldUnified(),
 
-              SizedBox(height: 20),
-
-              // ALTURA (campo editable)
-              _buildStaticField('Altura', _alturaController),
-
-              SizedBox(height: 20),
-
-              // PROPIETARIO con switch y dropdown
-              _buildPropietarioField(),
-
-              SizedBox(height: 40),
+              SizedBox(height: 30),
 
               // Botón Siguiente
-              Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _onSiguientePressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Siguiente',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              CustomButton(
+                text: 'Siguiente',
+                onPressed: _onSiguientePressed,
               ),
             ],
           ),
@@ -352,100 +268,40 @@ class _PosteTelematicoStep3ScreenState
     );
   }
 
-  Widget _buildOptionButton(String text, bool isSelected, VoidCallback onTap) {
-    return Container(
-      height: 50,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Color(0xFF1565C0) : Color(0xFFBBDEFB),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
+  // Campo propietario unificado con switch
+  Widget _buildPropietarioFieldUnified() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Propietario',
           style: TextStyle(
-            color: isSelected ? Colors.white : Color(0xFF1565C0),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ),
-    );
-  }
-
-  // Campo estático (solo muestra valor)
-  Widget _buildStaticField(String label, TextEditingController controller) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+        SizedBox(height: 4),
+        GestureDetector(
+          onTap: _tienePropietario ? _showPropietariosModal : null,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ),
-          SizedBox(height: 4),
-          TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Ingrese altura',
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Campo propietario con dropdown y switch
-  Widget _buildPropietarioField() {
-    return GestureDetector(
-      onTap: _tienePropietario ? _showPropietariosModal : null,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Propietario',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 4),
-            Row(
+            child: Row(
               children: [
                 Expanded(
                   child: Text(
                     _tienePropietario
-                        ? (_propietarioSeleccionado ?? '')
+                        ? (_propietarioSeleccionado ?? 'Seleccionar propietario')
                         : 'No asignado',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black,
+                      color: _tienePropietario 
+                          ? (_propietarioSeleccionado != null ? Colors.black : Colors.grey[500])
+                          : Colors.grey[500],
                     ),
                   ),
                 ),
@@ -469,16 +325,9 @@ class _PosteTelematicoStep3ScreenState
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  TextStyle _infoTextStyle() {
-    return TextStyle(
-      fontSize: 12,
-      color: Colors.grey[600],
+      ],
     );
   }
 }

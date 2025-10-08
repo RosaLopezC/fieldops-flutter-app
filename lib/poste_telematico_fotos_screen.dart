@@ -3,17 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteTelematicoFotosScreen extends StatefulWidget {
   final String distrito;
   final String zona;
   final String sector;
+  // Agregar parámetros GPS
+  final double latitudUsuario;
+  final double longitudUsuario;
+  final double precision;
+  final String fechaActualizacion;
 
   const PosteTelematicoFotosScreen({
     Key? key,
     required this.distrito,
     required this.zona,
     required this.sector,
+    required this.latitudUsuario,
+    required this.longitudUsuario,
+    required this.precision,
+    required this.fechaActualizacion,
   }) : super(key: key);
 
   @override
@@ -23,8 +33,8 @@ class PosteTelematicoFotosScreen extends StatefulWidget {
 
 class _PosteTelematicoFotosScreenState
     extends State<PosteTelematicoFotosScreen> {
-  // Estados de los switches
-  bool _fotosHabilitadas = false;
+  // Estados de los switches - fotos principales activas por defecto
+  bool _fotosHabilitadas = true;
   bool _fotosOpcionalesHabilitadas = false;
 
   // ImagePicker instance
@@ -37,11 +47,22 @@ class _PosteTelematicoFotosScreenState
   File? _fotoPerfilPoste;
   File? _fotoLapida;
 
+  // Controlador para observaciones
+  final _observacionesController = TextEditingController();
+
+  @override
+  void dispose() {
+    _observacionesController.dispose();
+    super.dispose();
+  }
+
   Future<void> _tomarFoto(String tipoFoto) async {
     try {
       final XFile? imagen = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 80,
+        maxWidth: 1920,
+        maxHeight: 1080,
       );
 
       if (imagen != null) {
@@ -64,12 +85,118 @@ class _PosteTelematicoFotosScreenState
               break;
           }
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Foto capturada correctamente')),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al tomar la foto: $e')),
       );
     }
+  }
+
+  Widget _buildSeccionFoto(String titulo, String tipo, File? foto) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: 15),
+      child: InkWell(
+        onTap: () => _tomarFoto(tipo),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          height: foto != null ? 200 : 100,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: foto != null ? Color(0xFFE3F2FD) : Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: foto != null ? Color(0xFF1565C0) : Colors.grey[300]!,
+              width: 2,
+            ),
+          ),
+          child: foto != null
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(foto),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      titulo,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.camera_alt,
+                      size: 32,
+                      color: Color(0xFF1565C0),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      titulo,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  void _validarYGuardar() {
+    if (_fotosHabilitadas) {
+      // Validar que las fotos obligatorias estén tomadas
+      List<String> fotosFaltantes = [];
+      
+      if (_fotoEstructuraCompleta == null) fotosFaltantes.add('Estructura completa');
+      if (_fotoCodigoEstructura == null) fotosFaltantes.add('Código estructura');
+      if (_fotoBasePoste == null) fotosFaltantes.add('Base poste');
+      if (_fotoPerfilPoste == null) fotosFaltantes.add('Perfil poste');
+
+      if (fotosFaltantes.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Debe tomar las siguientes fotos: ${fotosFaltantes.join(', ')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
+    // Aquí iría la lógica para guardar todos los datos del reporte
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Reporte guardado correctamente'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // Navegar de vuelta al inicio
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 
   @override
@@ -80,185 +207,157 @@ class _PosteTelematicoFotosScreenState
         title: 'Fotos del Poste Telemático',
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Switch Fotos
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Fotos',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1565C0),
-                      ),
+        child: Column(
+          children: [
+            // Información superior con resumen unificado
+            Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProjectSummaryCard(
+                    tipoPoste: 'Poste Telemático',
+                    distrito: widget.distrito,
+                    zona: widget.zona,
+                    sector: widget.sector,
+                  ),
+                  
+                  SizedBox(height: 15),
+                  
+                  // Información de posición del usuario
+                  Text(
+                    'Posición del usuario:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1565C0),
                     ),
-                    Switch(
+                  ),
+                  
+                  SizedBox(height: 10),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCoordinateField('Latitud', 
+                          widget.latitudUsuario.toStringAsFixed(7)
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Expanded(
+                        child: _buildCoordinateField('Longitud', 
+                          widget.longitudUsuario.toStringAsFixed(7)
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 10),
+                  
+                  Text(
+                    'Precisión: ${widget.precision.toStringAsFixed(1)} metros',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  ),
+                  
+                  Text(
+                    'actualizado el: ${widget.fechaActualizacion}',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
+
+            // Resto del contenido permanece igual...
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Switch Fotos principales
+                    CustomSwitchRow(
+                      title: 'Fotos',
                       value: _fotosHabilitadas,
                       onChanged: (value) {
                         setState(() {
                           _fotosHabilitadas = value;
+                          if (!value) {
+                            _fotoEstructuraCompleta = null;
+                            _fotoCodigoEstructura = null;
+                            _fotoBasePoste = null;
+                            _fotoPerfilPoste = null;
+                            _fotosOpcionalesHabilitadas = false;
+                            _fotoLapida = null;
+                          }
                         });
                       },
-                      activeColor: Color(0xFFFF6B00),
                     ),
-                  ],
-                ),
 
-                if (_fotosHabilitadas) ...[
-                  SizedBox(height: 15),
-                  _buildFotoSection('Estructura completa', 'estructura_completa',
-                      _fotoEstructuraCompleta),
-                  _buildFotoSection('Código estructura', 'codigo_estructura',
-                      _fotoCodigoEstructura),
-                  _buildFotoSection('Base poste', 'base_poste', _fotoBasePoste),
-                  _buildFotoSection('Perfil poste', 'perfil_poste', _fotoPerfilPoste),
+                    // Resto del contenido de fotos...
+                    if (_fotosHabilitadas) ...[
+                      SizedBox(height: 20),
+                      _buildSeccionFoto('Estructura completa', 'estructura_completa', _fotoEstructuraCompleta),
+                      _buildSeccionFoto('Código estructura', 'codigo_estructura', _fotoCodigoEstructura),
+                      _buildSeccionFoto('Base poste', 'base_poste', _fotoBasePoste),
+                      _buildSeccionFoto('Perfil poste', 'perfil_poste', _fotoPerfilPoste),
 
-                  // Switch Fotos opcionales
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Fotos opcionales',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1565C0),
-                        ),
-                      ),
-                      Switch(
+                      SizedBox(height: 10),
+
+                      CustomSwitchRow(
+                        title: 'Fotos opcionales',
                         value: _fotosOpcionalesHabilitadas,
                         onChanged: (value) {
                           setState(() {
                             _fotosOpcionalesHabilitadas = value;
+                            if (!value) {
+                              _fotoLapida = null;
+                            }
                           });
                         },
-                        activeColor: Color(0xFFFF6B00),
                       ),
+
+                      if (_fotosOpcionalesHabilitadas) ...[
+                        SizedBox(height: 15),
+                        _buildSeccionFoto('Foto lápida', 'lapida', _fotoLapida),
+                      ],
                     ],
-                  ),
 
-                  if (_fotosOpcionalesHabilitadas) ...[
-                    SizedBox(height: 15),
-                    _buildFotoSection('Foto lápida', 'lapida', _fotoLapida),
+                    SizedBox(height: 20),
+
+                    CustomTextField(
+                      label: 'Observaciones',
+                      controller: _observacionesController,
+                      hintText: 'Escriba sus observaciones aquí...',
+                      maxLines: 3,
+                    ),
+
+                    SizedBox(height: 30),
                   ],
-                ],
-
-                SizedBox(height: 20),
-
-                // Botón Guardar
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  child: Container(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _validarYGuardar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF1565C0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'Guardar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFotoSection(String titulo, String tipo, File? foto) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 15),
-      child: InkWell(
-        onTap: () => _tomarFoto(tipo),
-        child: Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!, width: 2),
-            borderRadius: BorderRadius.circular(8),
-            color: foto != null ? Colors.blue.shade50 : Colors.white,
-          ),
-          child: Column(
-            children: [
-              foto != null
-                  ? Container(
-                      height: 100,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          image: FileImage(foto),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
-                  : Icon(
-                      Icons.camera_alt,
-                      size: 40,
-                      color: Color(0xFF1565C0),
-                    ),
-              SizedBox(height: 8),
-              Text(
-                titulo,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1565C0),
                 ),
               ),
-              if (foto != null)
-                Text(
-                  'Foto capturada ✓',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            ],
-          ),
+            ),
+
+            Container(
+              padding: EdgeInsets.all(20),
+              child: CustomButton(
+                text: 'Guardar',
+                onPressed: _validarYGuardar,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _validarYGuardar() {
-    if (_fotosHabilitadas) {
-      if (_fotoEstructuraCompleta == null ||
-          _fotoCodigoEstructura == null ||
-          _fotoBasePoste == null ||
-          _fotoPerfilPoste == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Debe tomar todas las fotos obligatorias')),
-        );
-        return;
-      }
-    }
-
-    // Aquí iría la lógica para guardar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Reporte guardado correctamente')),
+  Widget _buildCoordinateField(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
+      ],
     );
-
-    // Regresar al inicio
-    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }

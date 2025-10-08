@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'poste_telematico_step2_screen.dart';
 import 'widgets/custom_app_bar.dart';  // Agregar esta línea
+import 'widgets/shared_components.dart';
 
 class TelematicPostReportScreen extends StatefulWidget {
   final String distrito;
@@ -226,40 +227,21 @@ class _TelematicPostReportScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Información del reporte
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Información del reporte',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1565C0),
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-                    Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-                    Text('Sector: ${widget.sector}', style: _infoTextStyle()),
-                  ],
-                ),
+              // Resumen del proyecto
+              ProjectSummaryCard(
+                tipoPoste: 'Poste Telemático',
+                distrito: widget.distrito,
+                zona: widget.zona,
+                sector: widget.sector,
               ),
 
               SizedBox(height: 30),
 
               // Switch: Añadir cables eléctricos
-              _buildSwitchRow(
-                'Añadir cables eléctricos',
-                _addElectricCables,
-                (value) {
+              CustomSwitchRow(
+                title: 'Añadir cables eléctricos',
+                value: _addElectricCables,
+                onChanged: (value) {
                   setState(() {
                     _addElectricCables = value;
                     if (!value) {
@@ -270,73 +252,54 @@ class _TelematicPostReportScreenState
                 },
               ),
 
-              SizedBox(height: 15),
-
-              // Cables eléctricos (solo visible si el switch está activo)
+              // Campo cables eléctricos (solo visible si switch está activo)
               if (_addElectricCables) ...[
-                _buildStaticField(
-                  'Cables eléctricos', 
-                  _cablesElectricosController,
-                  enabled: _addElectricCables
+                SizedBox(height: 15),
+                CustomTextField(
+                  label: 'Cables eléctricos',
+                  controller: _cablesElectricosController,
+                  keyboardType: TextInputType.number,
+                  hintText: 'Ingrese cantidad',
                 ),
                 SizedBox(height: 15),
+                // Campo Elementos eléctricos (dentro del if _addElectricCables)
+                _buildDropdownField(
+                  'Elementos eléctricos',
+                  elementosElectricosSeleccionados,
+                  onTap: _showElementosElectricosModal,
+                ),
               ],
 
+              SizedBox(height: 15),
+
               // Cables telemáticos (siempre visible)
-              _buildStaticField('Cables telemáticos', _cablesTelematicosController),
+              CustomTextField(
+                label: 'Cables telemáticos',
+                controller: _cablesTelematicosController,
+                keyboardType: TextInputType.number,
+                hintText: 'Ingrese cantidad',
+              ),
 
               SizedBox(height: 15),
 
-              // Código con switch
-              _buildCodigoField(),
-
-              SizedBox(height: 15),
-
-              // Elementos telemáticos dropdown (siempre visible)
+              // Elementos telemáticos (siempre visible)
               _buildDropdownField(
                 'Elementos telemáticos',
-                elementosTelematicosSeleccionados.isEmpty
-                    ? 'Caja NAP'
-                    : elementosTelematicosSeleccionados.join(', '),
+                elementosTelematicosSeleccionados,
                 onTap: _showElementosTelematicosModal,
               ),
 
               SizedBox(height: 15),
 
-              // Elementos eléctricos dropdown (solo visible si cables eléctricos está activo)
-              if (_addElectricCables) ...[
-                _buildDropdownField(
-                  'Elementos eléctricos',
-                  elementosElectricosSeleccionados.isEmpty
-                      ? 'Caja FAT'
-                      : elementosElectricosSeleccionados.join(', '),
-                  onTap: _showElementosElectricosModal,
-                ),
-              ],
+              // Campo código con switch integrado
+              _buildCodigoField(),
 
-              SizedBox(height: 40),
+              SizedBox(height: 30),
 
               // Botón Siguiente
-              Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _onSiguientePressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Siguiente',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              CustomButton(
+                text: 'Siguiente',
+                onPressed: _onSiguientePressed,
               ),
             ],
           ),
@@ -406,7 +369,7 @@ class _TelematicPostReportScreenState
     );
   }
 
-  // Campo de código con switch
+  // Método _buildCodigoField() actualizado
   Widget _buildCodigoField() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -433,14 +396,16 @@ class _TelematicPostReportScreenState
                   enabled: _tienecodigo,
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: 'Ingrese código',
+                    hintText: _tienecodigo ? 'Ingrese código' : 'ND',
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black,
+                    color: _tienecodigo ? Colors.black : Colors.grey[500],
                   ),
+                  // Mostrar ND cuando está desactivado
+                  readOnly: !_tienecodigo,
                 ),
               ),
               Switch(
@@ -449,7 +414,9 @@ class _TelematicPostReportScreenState
                   setState(() {
                     _tienecodigo = value;
                     if (!value) {
-                      _codigoController.clear();
+                      _codigoController.text = 'ND'; // Establecer ND cuando se desactiva
+                    } else {
+                      _codigoController.clear(); // Limpiar cuando se activa
                     }
                   });
                 },
@@ -462,9 +429,17 @@ class _TelematicPostReportScreenState
     );
   }
 
-  // Campo dropdown
-  Widget _buildDropdownField(String label, String displayText,
-      {VoidCallback? onTap}) {
+  // Método _buildDropdownField() actualizado para mostrar elementos seleccionados
+  Widget _buildDropdownField(String label, List<String> selectedItems, {VoidCallback? onTap}) {
+    String displayText;
+    
+    if (selectedItems.isEmpty) {
+      displayText = 'Seleccionar elementos';
+    } else {
+      // Mostrar todos los elementos seleccionados separados por coma
+      displayText = selectedItems.join(', ');
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -492,9 +467,10 @@ class _TelematicPostReportScreenState
                     displayText,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black,
+                      color: selectedItems.isEmpty ? Colors.grey[500] : Colors.black,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 2, // Permitir 2 líneas para mostrar más elementos
                   ),
                 ),
                 Icon(

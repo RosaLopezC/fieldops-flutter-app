@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'poste_telematico_step3_screen.dart';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteTelematicoStep2Screen extends StatefulWidget {
   final String distrito;
@@ -27,26 +28,15 @@ class PosteTelematicoStep2Screen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PosteTelematicoStep2ScreenState createState() =>
-      _PosteTelematicoStep2ScreenState();
+  _PosteTelematicoStep2ScreenState createState() => _PosteTelematicoStep2ScreenState();
 }
 
-class _PosteTelematicoStep2ScreenState
-    extends State<PosteTelematicoStep2Screen> {
-  // Tipo de estructura (primera fila)
+class _PosteTelematicoStep2ScreenState extends State<PosteTelematicoStep2Screen> {
   String? _tipoEstructuraSimple;
-
-  // Tipo de estructura (segunda fila)
   String? _tipoEstructuraMaterial;
-
-  // Zona de instalación (primera sección)
   String? _zonaInstalacion;
-
-  // Resistencia (segunda sección "Zona de instalación")
   String? _resistenciaSeleccionada;
-
-  // Controller para input personalizado
-  final _resistenciaOtroController = TextEditingController();
+  final TextEditingController _resistenciaOtroController = TextEditingController();
 
   @override
   void dispose() {
@@ -55,66 +45,45 @@ class _PosteTelematicoStep2ScreenState
   }
 
   void _onSiguientePressed() {
-    // Validaciones
-    if (_tipoEstructuraSimple == null) {
+    if (_tipoEstructuraSimple == null || _tipoEstructuraMaterial == null || 
+        _zonaInstalacion == null || _resistenciaSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Por favor seleccione el tipo de estructura (Simple/Doble/Triple)')),
+        SnackBar(content: Text('Por favor complete todos los campos')),
       );
       return;
     }
 
-    if (_tipoEstructuraMaterial == null) {
+    // Validar que si seleccionó "OTRO", debe llenar el campo
+    if (_resistenciaSeleccionada == 'OTRO' && _resistenciaOtroController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Por favor seleccione el material de la estructura')),
+        SnackBar(content: Text('Por favor especifique el valor de resistencia')),
       );
       return;
     }
 
-    if (_zonaInstalacion == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor seleccione la zona de instalación')),
-      );
-      return;
-    }
+    String resistenciaFinal = _resistenciaSeleccionada == 'OTRO' 
+        ? _resistenciaOtroController.text.trim()
+        : _resistenciaSeleccionada!;
 
-    if (_resistenciaSeleccionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor seleccione la resistencia')),
-      );
-      return;
-    }
-
-    // Si seleccionó "OTRO" debe ingresar un valor
-    if (_resistenciaSeleccionada == 'OTRO' &&
-        _resistenciaOtroController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor ingrese la resistencia personalizada')),
-      );
-      return;
-    }
-
-    // Navegar al paso 3
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => PosteTelematicoStep3Screen(
-      distrito: widget.distrito,
-      zona: widget.zona,
-      sector: widget.sector,
-      numCablesTelematicos: widget.numCablesTelematicos,
-      numCablesElectricos: widget.numCablesElectricos,
-      codigo: widget.codigo,
-      elementosElectricos: widget.elementosElectricos,
-      elementosTelematicos: widget.elementosTelematicos,
-      tipoEstructuraSimple: _tipoEstructuraSimple ?? '',
-      tipoEstructuraMaterial: _tipoEstructuraMaterial ?? '',
-      zonaInstalacion: _zonaInstalacion ?? '',
-      resistencia: _resistenciaSeleccionada ?? '',
-    ),
-  ),
-);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PosteTelematicoStep3Screen(
+          distrito: widget.distrito,
+          zona: widget.zona,
+          sector: widget.sector,
+          numCablesTelematicos: widget.numCablesTelematicos,
+          numCablesElectricos: widget.numCablesElectricos,
+          codigo: widget.codigo,
+          elementosElectricos: widget.elementosElectricos,
+          elementosTelematicos: widget.elementosTelematicos,
+          tipoEstructuraSimple: _tipoEstructuraSimple!,
+          tipoEstructuraMaterial: _tipoEstructuraMaterial!,
+          zonaInstalacion: _zonaInstalacion!,
+          resistencia: resistenciaFinal,
+        ),
+      ),
+    );
   }
 
   @override
@@ -126,90 +95,59 @@ Navigator.push(
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Tipo de estructura (primera fila)
-              Text(
-                'Tipo de estructura',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
-                ),
+              // Resumen del proyecto
+              ProjectSummaryCard(
+                tipoPoste: 'Poste Telemático',
+                distrito: widget.distrito,
+                zona: widget.zona,
+                sector: widget.sector,
               ),
-              SizedBox(height: 10),
-              _buildOptionsRow(
-                ['Simple', 'Doble', 'Triple'],
-                _tipoEstructuraSimple,
-                (value) => setState(() => _tipoEstructuraSimple = value),
+
+              SizedBox(height: 30),
+
+              // Tipo de estructura (primera fila)
+              OptionsSelector(
+                title: 'Tipo de estructura',
+                options: ['Simple', 'Doble', 'Triple'],
+                selectedValue: _tipoEstructuraSimple,
+                onSelect: (value) => setState(() => _tipoEstructuraSimple = value),
               ),
 
               SizedBox(height: 20),
 
               // Tipo de estructura (segunda fila)
-              _buildOptionsRow(
-                ['Madera', 'Concreto', 'Metal', 'Plástico'],
-                _tipoEstructuraMaterial,
-                (value) => setState(() => _tipoEstructuraMaterial = value),
+              OptionsSelector(
+                title: 'Tipo de Material',
+                options: ['Madera', 'Concreto', 'Metal', 'Fibra'],
+                selectedValue: _tipoEstructuraMaterial,
+                onSelect: (value) => setState(() => _tipoEstructuraMaterial = value),
               ),
 
               SizedBox(height: 30),
 
-              // Zona de instalación (primera sección)
-              Text(
-                'Zona de instalación',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
-                ),
-              ),
-              SizedBox(height: 10),
-              _buildOptionsRow(
-                ['Rural', 'Urbana'],
-                _zonaInstalacion,
-                (value) => setState(() => _zonaInstalacion = value),
+              // Zona de instalación
+              OptionsSelector(
+                title: 'Zona de instalación',
+                options: ['Tierra', 'Jardín', 'Rocoso', 'Vereda'],
+                selectedValue: _zonaInstalacion,
+                onSelect: (value) => setState(() => _zonaInstalacion = value),
               ),
 
               SizedBox(height: 30),
 
-              // Resistencia (segunda sección)
-              Text(
-                'Resistencia',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
-                ),
-              ),
-              SizedBox(height: 10),
+              // Resistencia
               _buildResistenciaSection(),
 
               SizedBox(height: 30),
 
               // Botón Siguiente
-              Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _onSiguientePressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Siguiente',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              CustomButton(
+                text: 'Siguiente',
+                onPressed: _onSiguientePressed,
               ),
             ],
           ),
@@ -218,108 +156,96 @@ Navigator.push(
     );
   }
 
-  Widget _buildOptionsRow(List<String> options, String? selectedValue, Function(String) onSelect) {
-    return Container(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: options.length,
-        separatorBuilder: (context, index) => SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final option = options[index];
-          final isSelected = selectedValue == option;
-          
-          return InkWell(
-            onTap: () => onSelect(option),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: isSelected ? Color(0xFF1565C0) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected ? Color(0xFF1565C0) : Colors.grey[300]!,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  option,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildResistenciaSection() {
-    final resistencias = ['500N', '1000N', '1500N', 'OTRO'];
+    final resistencias = ['100', '200', '250', '300', '400', '500', 'ND', 'OTRO'];
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          height: 40,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: resistencias.length,
-            separatorBuilder: (context, index) => SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final resistencia = resistencias[index];
-              final isSelected = _resistenciaSeleccionada == resistencia;
-              
-              return InkWell(
-                onTap: () => setState(() => _resistenciaSeleccionada = resistencia),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Color(0xFF1565C0) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? Color(0xFF1565C0) : Colors.grey[300]!,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      resistencia,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey[600],
-                        fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+        Text(
+          'Resistencia',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1565C0),
           ),
         ),
+        SizedBox(height: 10),
+        
+        // Primera fila: 100, 200, 250
+        Row(
+          children: [
+            Expanded(child: _buildResistenciaButton('100')),
+            SizedBox(width: 10),
+            Expanded(child: _buildResistenciaButton('200')),
+            SizedBox(width: 10),
+            Expanded(child: _buildResistenciaButton('250')),
+          ],
+        ),
+        
+        SizedBox(height: 10),
+        
+        // Segunda fila: 300, 400, 500
+        Row(
+          children: [
+            Expanded(child: _buildResistenciaButton('300')),
+            SizedBox(width: 10),
+            Expanded(child: _buildResistenciaButton('400')),
+            SizedBox(width: 10),
+            Expanded(child: _buildResistenciaButton('500')),
+          ],
+        ),
+        
+        SizedBox(height: 10),
+        
+        // Tercera fila: ND, OTRO
+        Row(
+          children: [
+            Expanded(child: _buildResistenciaButton('ND')),
+            SizedBox(width: 10),
+            Expanded(child: _buildResistenciaButton('OTRO')),
+            SizedBox(width: 10),
+            Expanded(child: SizedBox()), // Espacio vacío
+          ],
+        ),
+        
         if (_resistenciaSeleccionada == 'OTRO') ...[
-          SizedBox(height: 10),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              controller: _resistenciaOtroController,
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Ingrese otro valor',
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: TextStyle(fontSize: 16),
-            ),
+          SizedBox(height: 15),
+          CustomTextField(
+            label: 'Especificar resistencia',
+            controller: _resistenciaOtroController,
+            hintText: 'Ingrese el valor de resistencia',
+            keyboardType: TextInputType.number,
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildResistenciaButton(String resistencia) {
+    final isSelected = _resistenciaSeleccionada == resistencia;
+    
+    return Container(
+      height: 50, // Aumentado de 45 a 50
+      child: ElevatedButton(
+        onPressed: () => setState(() => _resistenciaSeleccionada = resistencia),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSelected ? Color(0xFF1565C0) : Color(0xFFBBDEFB),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Añadir padding
+        ),
+        child: Text(
+          resistencia,
+          textAlign: TextAlign.center, // Centrar el texto
+          style: TextStyle(
+            color: isSelected ? Colors.white : Color(0xFF1565C0),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

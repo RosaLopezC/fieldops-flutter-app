@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'poste_telematico_fotos_screen.dart';
 import 'widgets/custom_app_bar.dart';
+import 'widgets/shared_components.dart';
 
 class PosteTelematicoStep4Screen extends StatefulWidget {
   final String distrito;
@@ -401,7 +402,7 @@ class _PosteTelematicoStep4ScreenState
       return;
     }
 
-    // Navegar al paso 5 (Fotos) con TODOS los datos
+    // Navegar al paso 5 (Fotos) con TODOS los datos incluyendo GPS
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -409,6 +410,11 @@ class _PosteTelematicoStep4ScreenState
           distrito: widget.distrito,
           zona: widget.zona,
           sector: widget.sector,
+          // Pasar datos GPS
+          latitudUsuario: latitudUsuario!,
+          longitudUsuario: longitudUsuario!,
+          precision: precision,
+          fechaActualizacion: fechaActualizacion,
         ),
       ),
     );
@@ -421,222 +427,215 @@ class _PosteTelematicoStep4ScreenState
       appBar: CustomAppBar(
         title: 'Poste Telemático - GPS',
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: latitudUsuario != null
-                ? Container(
-                    margin: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[300]!),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Información superior con resumen unificado
+            Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Resumen del proyecto unificado
+                  ProjectSummaryCard(
+                    tipoPoste: 'Poste Telemático',
+                    distrito: widget.distrito,
+                    zona: widget.zona,
+                    sector: widget.sector,
+                  ),
+                  
+                  SizedBox(height: 15),
+                  
+                  Text(
+                    'Posición del usuario:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1565C0),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: GoogleMap(
-                        mapType: MapType.normal,
-                        initialCameraPosition: _initialPosition,
-                        markers: _markers,
-                        circles: _circles,
-                        onMapCreated: (GoogleMapController controller) {
-                          _controller.complete(controller);
-                        },
-                        myLocationEnabled: false,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: true,
-                        compassEnabled: true,
-                        tiltGesturesEnabled: false,
+                  ),
+                  
+                  SizedBox(height: 10),
+                  
+                  if (!_permisosConcedidos)
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange),
                       ),
-                    ),
-                  )
-                : Container(
-                    margin: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Row(
                         children: [
-                          Icon(Icons.location_off,
-                              size: 64, color: Colors.grey[400]),
-                          SizedBox(height: 16),
-                          Text(
-                            'Obtenga su ubicación GPS para ver el mapa',
-                            style: TextStyle(color: Colors.grey[600]),
+                          Icon(Icons.warning, color: Colors.orange),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Se necesitan permisos de ubicación para mostrar Google Maps',
+                              style: TextStyle(color: Colors.orange.shade800),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-          ),
-          Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Poste Telemático',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1565C0),
-                  ),
-                ),
-
-                SizedBox(height: 10),
-
-                Text('Distrito: ${widget.distrito}', style: _infoTextStyle()),
-                Text('Zona: ${widget.zona}', style: _infoTextStyle()),
-                Text('Sector: ${widget.sector}', style: _infoTextStyle()),
-
-                SizedBox(height: 15),
-
-                Text(
-                  'Posición del usuario:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1565C0),
-                  ),
-                ),
-
-                SizedBox(height: 10),
-
-                if (!_permisosConcedidos)
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange),
-                    ),
-                    child: Row(
+                    )
+                  else if (latitudUsuario == null)
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          CircularProgressIndicator(strokeWidth: 2),
+                          SizedBox(width: 10),
+                          Text('Obteniendo ubicación GPS...'),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    Row(
                       children: [
-                        Icon(Icons.warning, color: Colors.orange),
-                        SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            'Se necesitan permisos de ubicación para mostrar Google Maps',
-                            style:
-                                TextStyle(color: Colors.orange.shade800),
+                          child: _buildCoordinateField('Latitud', 
+                            _mostrandoUsuario 
+                              ? latitudUsuario!.toStringAsFixed(7)
+                              : latitudPosteSeleccionado!.toStringAsFixed(7)
+                          ),
+                        ),
+                        SizedBox(width: 15),
+                        Expanded(
+                          child: _buildCoordinateField('Longitud', 
+                            _mostrandoUsuario 
+                              ? longitudUsuario!.toStringAsFixed(7)
+                              : longitudPosteSeleccionado!.toStringAsFixed(7)
                           ),
                         ),
                       ],
                     ),
-                  )
-                else if (latitudUsuario == null)
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(8),
+                    
+                    SizedBox(height: 10),
+                    
+                    Text(
+                      'Precisión: ${precision.toStringAsFixed(1)} metros',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     ),
-                    child: Row(
-                      children: [
-                        CircularProgressIndicator(strokeWidth: 2),
-                        SizedBox(width: 10),
-                        Text('Obteniendo ubicación GPS...'),
-                      ],
+                    
+                    Text(
+                      'actualizado el: $fechaActualizacion',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     ),
-                  )
-                else ...[
+                  ],
+                  
+                  SizedBox(height: 15),
+                  
+                  // Botones de control
                   Row(
                     children: [
                       Expanded(
-                        child: _buildCoordinateField(
-                            'Latitud',
-                            _mostrandoUsuario
-                                ? latitudUsuario!.toStringAsFixed(7)
-                                : latitudPosteSeleccionado!
-                                    .toStringAsFixed(7)),
+                        child: Container(
+                          height: 45,
+                          child: ElevatedButton(
+                            onPressed: _isUpdatingLocation ? null : _getCurrentLocation,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _mostrandoUsuario ? Color(0xFF1565C0) : Color(0xFFBBDEFB),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: _isUpdatingLocation
+                                ? CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                : Icon(Icons.my_location, 
+                                    color: _mostrandoUsuario ? Colors.white : Color(0xFF1565C0), 
+                                    size: 20
+                                  ),
+                          ),
+                        ),
                       ),
                       SizedBox(width: 15),
                       Expanded(
-                        child: _buildCoordinateField(
-                            'Longitud',
-                            _mostrandoUsuario
-                                ? longitudUsuario!.toStringAsFixed(7)
-                                : longitudPosteSeleccionado!
-                                    .toStringAsFixed(7)),
+                        child: Container(
+                          height: 45,
+                          child: ElevatedButton(
+                            onPressed: latitudUsuario != null ? _toggleView : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: !_mostrandoUsuario ? Color(0xFF1565C0) : Color(0xFFBBDEFB),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Icon(Icons.place, 
+                              color: !_mostrandoUsuario ? Colors.white : Color(0xFF1565C0), 
+                              size: 20
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Precisión: ${precision.toStringAsFixed(1)} metros',
-                    style:
-                        TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
-                  Text(
-                    'actualizado el: $fechaActualizacion',
-                    style:
-                        TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
                 ],
-
-                SizedBox(height: 15),
-
-                // Botones de control
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 45,
-                        child: ElevatedButton(
-                          onPressed: _isUpdatingLocation
-                              ? null
-                              : _getCurrentLocation,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _mostrandoUsuario
-                                ? Color(0xFF1565C0)
-                                : Color(0xFFBBDEFB),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: _isUpdatingLocation
-                              ? CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2)
-                              : Icon(Icons.my_location,
-                                  color: _mostrandoUsuario
-                                      ? Colors.white
-                                      : Color(0xFF1565C0),
-                                  size: 20),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 15),
-                    Expanded(
-                      child: Container(
-                        height: 45,
-                        child: ElevatedButton(
-                          onPressed: latitudUsuario != null
-                              ? _toggleView
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: !_mostrandoUsuario
-                                ? Color(0xFF1565C0)
-                                : Color(0xFFBBDEFB),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Icon(Icons.place,
-                              color: !_mostrandoUsuario
-                                  ? Colors.white
-                                  : Color(0xFF1565C0),
-                              size: 20),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+            
+            // Google Maps
+            Expanded(
+              child: latitudUsuario != null
+                  ? Container(
+                      margin: EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: GoogleMap(
+                          mapType: MapType.normal,
+                          initialCameraPosition: _initialPosition,
+                          markers: _markers,
+                          circles: _circles,
+                          onMapCreated: (GoogleMapController controller) {
+                            _controller.complete(controller);
+                          },
+                          myLocationEnabled: false,
+                          myLocationButtonEnabled: false,
+                          zoomControlsEnabled: true,
+                          compassEnabled: true,
+                          tiltGesturesEnabled: false,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      margin: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.location_off, size: 64, color: Colors.grey[400]),
+                            SizedBox(height: 16),
+                            Text(
+                              'Obtenga su ubicación GPS para ver el mapa',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+            
+            // Botón Siguiente usando el componente unificado
+            Container(
+              padding: EdgeInsets.all(20),
+              child: CustomButton(
+                text: 'Siguiente',
+                onPressed: latitudUsuario != null ? _onSiguientePressed : null,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
