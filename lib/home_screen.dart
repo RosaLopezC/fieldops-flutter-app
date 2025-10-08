@@ -1,6 +1,7 @@
 // lib/home_screen.dart
 import 'package:flutter/material.dart';
 import 'poste_selection_screen.dart';
+import 'predio_form_screen.dart'; // <-- importa la pantalla de formulario de predio
 
 class HomeScreen extends StatefulWidget {
   final String distrito;
@@ -42,9 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onPredioPressed() {
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => PredioFormScreen()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Formulario de Predio')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PredioFormScreen(
+          distrito: widget.distrito,
+          zona: widget.zona,
+          sector: widget.sector,
+        ),
+      ),
     );
   }
 
