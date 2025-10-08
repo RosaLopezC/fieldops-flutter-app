@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'location_selection_screen.dart';
 import 'services/auth_service.dart';
 
-void main() {
+void main() async {
+  // Asegurarse de que los widgets de Flutter estén inicializados
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Ahora puedes ejecutar la app
   runApp(FieldOpsApp());
 }
 
@@ -32,6 +38,68 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _rememberData = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  // Cargar credenciales guardadas
+  Future<void> _loadSavedCredentials() async {
+    try {
+      print('Intentando cargar credenciales guardadas');
+      final prefs = await SharedPreferences.getInstance();
+      final rememberData = prefs.getBool('rememberData') ?? false;
+      print('RememberData encontrado: $rememberData');
+      
+      if (rememberData) {
+        final dni = prefs.getString('dni') ?? '';
+        final password = prefs.getString('password') ?? '';
+        print('Credenciales encontradas: dni=$dni, password=***');
+        
+        setState(() {
+          _dniController.text = dni;
+          _passwordController.text = password;
+          _rememberData = rememberData;
+        });
+        print('Estado actualizado con credenciales guardadas');
+      } else {
+        print('No hay datos guardados o rememberData es false');
+      }
+    } catch (e) {
+      print('Error al cargar credenciales: $e');
+    }
+  }
+
+  // Guardar credenciales
+  Future<void> _saveCredentials(String dni, String password) async {
+    try {
+      print('Guardando credenciales: rememberData=$_rememberData, dni=$dni');
+      final prefs = await SharedPreferences.getInstance();
+      
+      if (_rememberData) {
+        await prefs.setString('dni', dni);
+        await prefs.setString('password', password);
+        await prefs.setBool('rememberData', true);
+        print('Credenciales guardadas con éxito');
+      } else {
+        // Limpiar credenciales guardadas
+        await prefs.remove('dni');
+        await prefs.remove('password');
+        await prefs.setBool('rememberData', false);
+        print('Credenciales eliminadas');
+      }
+      
+      // Verificar que se guardaron correctamente
+      final testRemember = prefs.getBool('rememberData');
+      final testDni = prefs.getString('dni');
+      print('Verificación: rememberData=$testRemember, dni=$testDni');
+    } catch (e) {
+      print('Error al guardar credenciales: $e');
+    }
+  }
 
   void _login() async {
     final dni = _dniController.text.trim();
@@ -44,12 +112,23 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // Validar que el DNI tenga exactamente 8 dígitos
+    if (dni.length != 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('El DNI debe tener exactamente 8 dígitos')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
       final result = await _authService.login(dni, password);
 
       if (result['success']) {
+        // Guardar credenciales si se marcó "Recordar datos"
+        await _saveCredentials(dni, password);
+        
         // Navigate to next screen with user data
         Navigator.pushReplacement(
           context,
@@ -92,10 +171,14 @@ class _LoginScreenState extends State<LoginScreen> {
               
               SizedBox(height: 60),
               
-              // Campo DNI
+              // Campo DNI - Limitado a 8 dígitos
               TextFormField(
                 controller: _dniController,
                 keyboardType: TextInputType.number,
+                maxLength: 8, // Limitar a 8 caracteres
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly, // Solo permitir dígitos
+                ],
                 decoration: InputDecoration(
                   hintText: 'DNI',
                   filled: true,
@@ -105,6 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderSide: BorderSide.none,
                   ),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  counterText: '', // Ocultar el contador de caracteres
                 ),
               ),
               
@@ -139,12 +223,16 @@ class _LoginScreenState extends State<LoginScreen> {
               
               SizedBox(height: 20),
               
-              // Recordar datos
+              // Recordar datos - Ahora funcional
               Row(
                 children: [
                   Checkbox(
-                    value: false,
-                    onChanged: (value) {},
+                    value: _rememberData,
+                    onChanged: (value) {
+                      setState(() {
+                        _rememberData = value ?? false;
+                      });
+                    },
                     activeColor: Color(0xFF1565C0),
                   ),
                   Text(
